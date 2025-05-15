@@ -19,6 +19,61 @@ DEFAULT_CONFIG = {
     "telegram_token": "<TELEGRAM TOKEN>"
 }
 
+table_data = [
+    {
+        "table_name": "dir_avg_cost",
+        "last_update_column": "avgc_last_update"
+    },
+    {
+        "table_name": "dir_customers",
+        "last_update_column": "cstm_last_update"
+    },
+    {
+        "table_name": "dir_good_remainders",
+        "last_update_column": "objbl_last_update"
+    },
+    {
+        "table_name": "dir_goods",
+        "last_update_column": "gd_last_update"
+    },
+    {
+        "table_name": "dir_groups",
+        "last_update_column": "grp_last_update"
+    },
+    {
+        "table_name": "dir_objects",
+        "last_update_column": "obj_last_update"
+    },
+    {
+        "table_name": "dir_prices",
+        "last_update_column": "prc_last_update"
+    },
+    {
+        "table_name": "dir_prices_types",
+        "last_update_column": "prct_last_update"
+    },
+    {
+        "table_name": "dir_prices_types",
+        "last_update_column": "prct_last_update"
+    },
+    {
+        "table_name": "dir_scans",
+        "last_update_column": "scn_last_update"
+    },
+    {
+        "table_name": "doc_payments",
+        "last_update_column": "pmt_last_update"
+    },
+    {
+        "table_name": "doc_sales",
+        "last_update_column": "sls_last_update"
+    },
+    {
+        "table_name": "operations",
+        "last_update_column": "opr_last_update"
+    },
+]
+
 def get_date():
     now = datetime.now()
     return now.strftime("%m/%d/%Y %H:%M:%S")
