@@ -136,7 +136,7 @@ class AsyncMySQLBackup:
                 f"--user={self.user}",
                 f"--password={self.password}",
                 f"--host={self.host}",
-                self.database
+                self.database,
             ]
 
             proc = await asyncio.create_subprocess_exec(
@@ -150,8 +150,8 @@ class AsyncMySQLBackup:
             if proc.returncode != 0:
                 raise RuntimeError(f"mysqldump failed: {stderr.decode()}")
 
-            async with aiofiles.open(output_file, "w") as f:
-                await f.write(stdout.decode())
+            async with aiofiles.open(output_file, "w", encoding="utf-8") as f:
+                await f.write(stdout.decode("utf-8"))
 
             write_log_file(f"Backup successful: {output_file}")
 
