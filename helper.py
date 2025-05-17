@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 import unicodedata
 import glob
+import pathlib
 
 _today = datetime.now().strftime("%d-%m-%Y")
 log_file = f"logs/log-{_today}.log"
@@ -15,7 +16,7 @@ DEFAULT_CONFIG = {
     "database": "easytrade_db",
     "check_interval": 60,
     "backup_dir": "backups",
-    "mysqldump_path": "mysqldump",
+    "mysqldump_path": "C:\\MySQL\\bin\\mysqldump",
     "telegram_token": "<TELEGRAM TOKEN>"
 }
 
@@ -160,32 +161,25 @@ def read_from_json(filename):
         write_log_file(f"Error reading from JSON: {e}")
         return None
 
-def delete_zip_files(folder_path="notifications"):
-    """
-    Delete all .xlsx files from the specified folder.
+def keep_last_three_files(folder_path):
+    # Convert to Path object
+    folder = pathlib.Path(folder_path)
 
-    Args:
-        folder_path (str): The path to the folder containing .txt files
+    if not folder.is_dir():
+        write_log_file(f"The path '{folder_path}' is not a valid directory.")
 
-    Returns:
-        int: Number of files deleted
-    """
-    # Create a pattern to match all .txt files in the folder
-    pattern = os.path.join(folder_path, "*.zip")
+    # Get all files in the directory
+    files = [f for f in folder.iterdir() if f.is_file()]
 
-    # Find all .txt files
-    txt_files = glob.glob(pattern)
+    # Sort files by creation time (oldest first)
+    files.sort(key=lambda f: f.stat().st_ctime)
 
-    # Count how many files we'll delete
-    count = len(txt_files)
+    # Keep only the last 3 created files
+    files_to_delete = files[:-3]
 
-    # Delete each file
-    for file_path in txt_files:
+    for file in files_to_delete:
         try:
-            os.remove(file_path)
-            write_log_file(f"Deleted: {file_path}")
+            file.unlink()  # Delete the file
+            write_log_file(f"Deleted: {file}")
         except Exception as e:
-            write_log_file(f"Error deleting {file_path}: {e}")
-
-    write_log_file(f"Total .txt files deleted: {count}")
-    return count
+            write_log_file(f"Failed to delete {file}: {e}")

@@ -1,9 +1,10 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 from telebot.async_telebot import AsyncTeleBot
 
 
 from async_backup import AsyncMySQLBackup
-from helper import write_log_file, read_from_json, append_dict_to_json_file, normalize_font, delete_zip_files, table_data
+from helper import write_log_file, read_from_json, append_dict_to_json_file, normalize_font, table_data, keep_last_three_files
 import asyncio
 
 
@@ -19,17 +20,24 @@ async def send_zip_file(user_id: int, zip_path: str, caption: str = None):
             await bot.send_document(user_id, file, caption=caption)
     except Exception as e:
         write_log_file(f"Error sending ZIP file: {e}")
+        await bot.send_message(user_id, f"Error sending ZIP file: {e}")
 
-async def send_backup_info():
+async def send_backup_info(force=False):
     users_info = read_from_json(users_config_path)
     if not users_info:
         write_log_file("There is no user was added.")
 
-    backup_path = await mysql_backupper.check_and_update()
+    if force:
+        backup_path = await mysql_backupper.create_backup()
+    else:
+        backup_path = await mysql_backupper.check_and_update()
     if not backup_path: return
     for user_info in users_info:
         if user_info["is_active"]:
             await send_zip_file(user_id=user_info["user_id"], zip_path=backup_path, caption="Backup file")
+
+    keep_last_three_files(mysql_backupper.backup_dir)
+
 
 @bot.message_handler(commands=['start'])
 async def register_user(message):
@@ -62,9 +70,16 @@ async def register_user(message):
 async def main():
     scheduler = AsyncIOScheduler()
     write_log_file("Bot started...")
-    delete_zip_files(folder_path=mysql_backupper.backup_dir)
     check_interval = mysql_backupper.config["check_interval"]
     scheduler.add_job(send_backup_info, 'interval', minutes=check_interval)
+
+    hours = [f"{i:02}" for i in range(24)]
+    for hour in hours:
+        scheduler.add_job(
+            send_backup_info,
+            CronTrigger(hour=hour, minute="00"),
+            args=[True],
+        )
     scheduler.start()
     await bot.infinity_polling()
 

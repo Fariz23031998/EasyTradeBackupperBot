@@ -86,15 +86,17 @@ class AsyncMySQLBackup:
         is_data_updated = await self.is_data_updated(self.table_data)
         if is_data_updated:
             return True
-
-        db_signature = await self.database_signature()
-        if db_signature != self.last_change_signature:
-            self.last_change_signature = db_signature
-            write_log_file("Database signature changed")
-            return True
         else:
-            write_log_file("Database signature did not change")
             return False
+
+        # db_signature = await self.database_signature()
+        # if db_signature != self.last_change_signature:
+        #     self.last_change_signature = db_signature
+        #     write_log_file("Database signature changed")
+        #     return True
+        # else:
+        #     write_log_file("Database signature did not change")
+        #     return False
 
     async def check_and_update(self):
         write_log_file("Checking database...")
@@ -161,3 +163,4 @@ class AsyncMySQLBackup:
             return False
         else:
             return zip_output_file
+

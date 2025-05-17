@@ -1,0 +1,13 @@
+/venv/
+/.idea/
+/notifications/
+/logs/
+/.git/
+/dist/
+/build/
+/__pycache__/
+/backups/
+*.pyc
+*.env
+*.json
+test.py
