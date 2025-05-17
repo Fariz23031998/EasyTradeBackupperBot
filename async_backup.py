@@ -5,7 +5,7 @@ import os
 import hashlib
 from datetime import datetime
 import zipfile
-from helper import configure_settings, write_log_file
+from helper import configure_settings, write_log_file, get_c_drive_serial
 import time
 
 
@@ -127,7 +127,8 @@ class AsyncMySQLBackup:
 
     async def create_backup(self):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = f"{self.backup_dir}/{self.database}_{timestamp}.sql"
+        c_serial_drive = get_c_drive_serial()
+        output_file = f"{self.backup_dir}/{self.database}_{c_serial_drive}_{timestamp}.sql"
         zip_output_file = output_file + ".zip"
         try:
             command = [

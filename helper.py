@@ -183,3 +183,70 @@ def keep_last_three_files(folder_path):
             write_log_file(f"Deleted: {file}")
         except Exception as e:
             write_log_file(f"Failed to delete {file}: {e}")
+
+
+def get_c_drive_serial():
+    """
+    Returns the serial number of the C drive in the format 'E8D0-04CC'.
+
+    Returns:
+        str: The formatted serial number of the C drive
+    """
+    try:
+        # Method 1: Using the Windows API via ctypes
+        import ctypes
+
+        # Define needed Windows API constants
+        DRIVE_FIXED = 3
+
+        # Get the volume information
+        volume_name_buffer = ctypes.create_unicode_buffer(1024)
+        file_system_name_buffer = ctypes.create_unicode_buffer(1024)
+        volume_serial_number = ctypes.c_ulong(0)
+        max_component_length = ctypes.c_ulong(0)
+        file_system_flags = ctypes.c_ulong(0)
+
+        # Call GetVolumeInformation Windows API function
+        ctypes.windll.kernel32.GetVolumeInformationW(
+            ctypes.c_wchar_p("C:\\"),
+            volume_name_buffer,
+            ctypes.sizeof(volume_name_buffer),
+            ctypes.byref(volume_serial_number),
+            ctypes.byref(max_component_length),
+            ctypes.byref(file_system_flags),
+            file_system_name_buffer,
+            ctypes.sizeof(file_system_name_buffer)
+        )
+
+        # Convert the serial number to the desired format
+        serial_number = volume_serial_number.value
+        formatted_serial = f"{(serial_number >> 16) & 0xFFFF:04X}-{serial_number & 0xFFFF:04X}"
+
+        return formatted_serial
+
+    except Exception as e:
+        # If the first method fails, try the fallback method using subprocess
+        try:
+            import subprocess
+            import re
+
+            # Run the 'vol' command to get volume information
+            result = subprocess.run(['cmd', '/c', 'vol', 'C:'],
+                                    capture_output=True,
+                                    text=True,
+                                    creationflags=subprocess.CREATE_NO_WINDOW)
+
+            # Use regex to find the serial number in the output
+            # Example output: "Volume in drive C is Windows\nVolume Serial Number is E8D0-04CC"
+            serial_match = re.search(r'Serial Number is ([0-9A-F]{4}-[0-9A-F]{4})', result.stdout)
+
+            if serial_match:
+                return serial_match.group(1)
+            else:
+                write_log_file(f"Error: Could not find serial number '{serial_match}'")
+                return "OOOO-OOOO"
+
+        except Exception as inner_e:
+            write_log_file(f"Failed to retrieve serial number: {str(inner_e)}")
+            return "OOOO-OOOO"
+
