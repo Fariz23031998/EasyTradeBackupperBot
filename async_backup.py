@@ -17,6 +17,8 @@ class AsyncMySQLBackup:
         self.password = self.config["password"]
         self.database = self.config["database"]
         self.backup_dir = self.config["backup_dir"]
+        self.prefix = self.config["prefix"]
+        self.group_chat_id = self.config["group_chat_id"]
         self.mysqldump_path = self.config["mysqldump_path"]
         self.last_change_signature = None
         self.last_update_timestamp = 0
@@ -110,6 +112,8 @@ class AsyncMySQLBackup:
             else:
                 write_log_file("Backup creation failed")
                 return False
+        else:
+            write_log_file("DB wasn't changed.")
 
     async def async_zip_file(self, input_path, output_zip_path):
         """
@@ -128,7 +132,7 @@ class AsyncMySQLBackup:
     async def create_backup(self):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         c_serial_drive = get_c_drive_serial()
-        output_file = f"{self.backup_dir}/{self.database}_{c_serial_drive}_{timestamp}.sql"
+        output_file = f"{self.backup_dir}/{self.prefix}_{c_serial_drive}_{timestamp}.sql"
         zip_output_file = output_file + ".zip"
         try:
             command = [

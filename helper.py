@@ -1,8 +1,6 @@
 import os
 from datetime import datetime
 import json
-import unicodedata
-import glob
 import pathlib
 
 _today = datetime.now().strftime("%d-%m-%Y")
@@ -17,7 +15,9 @@ DEFAULT_CONFIG = {
     "check_interval": 60,
     "backup_dir": "backups",
     "mysqldump_path": "C:\\MySQL\\bin\\mysqldump",
-    "telegram_token": "<TELEGRAM TOKEN>"
+    "telegram_token": "<TELEGRAM TOKEN>",
+    "group_chat_id": 0,
+    "prefix": "EasyTrade"
 }
 
 table_data = [
@@ -86,8 +86,8 @@ def write_log_file(text):
         print(formatted_text)
 
 
-def configure_settings(data_dict=DEFAULT_CONFIG, filename="config.json"):
-    if os.path.exists(filename):
+def configure_settings(data_dict=DEFAULT_CONFIG, filename="config.json", update: bool = False):
+    if not update and os.path.exists(filename):
         try:
             with open(filename, 'r', encoding='utf-8') as json_file:
                 data_dict = json.load(json_file)
@@ -111,37 +111,6 @@ def configure_settings(data_dict=DEFAULT_CONFIG, filename="config.json"):
         write_log_file(f"Error writing to JSON file: {e}")
     else:
         return data_dict
-
-def normalize_font(text):
-    return ''.join(
-        unicodedata.normalize('NFKD', char)[0]
-        for char in text
-    )
-
-def append_dict_to_json_file(data: dict, filename: str):
-    # Check if the file exists
-    if os.path.exists(filename):
-        try:
-            with open(filename, 'r', encoding='utf-8') as file:
-                existing_data = json.load(file)
-            # Ensure it's a list
-            if not isinstance(existing_data, list):
-                raise ValueError("JSON file does not contain a list.")
-        except (json.JSONDecodeError, FileNotFoundError):
-            existing_data = []
-    else:
-        existing_data = []
-
-    # Append new data and write back
-    existing_data.append(data)
-    try:
-        with open(filename, 'w', encoding='utf-8') as file:
-            json.dump(existing_data, file, indent=4)
-
-        return True
-    except Exception as e:
-        write_log_file(f"Error writing to JSON file: {e}")
-        return False
 
 def read_from_json(filename):
     """
